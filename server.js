@@ -1,3 +1,4 @@
+
 const express = require('express');
 
 const app = express();
@@ -7,16 +8,16 @@ let books = [
     {
         id: 1,
         title: "Java Programming",
-        author: "Herbert Schildt",
+        author: "James Gosling",
         category: "Programming",
         quantity: 5,
         available: 5
     },
     {
         id: 2,
-        title: "The third level",
-        author: "Robert Frost",
-        category: "Literature",
+        title: "Python Basics",
+        author: "Guido van Rossum",
+        category: "Programming",
         quantity: 4,
         available: 4
     },
@@ -29,27 +30,35 @@ let books = [
         available: 3
     }
 ];
-app.post('/api/books', (req, res) => {
-    const { title, author, category, quantity } = req.body;
 
-    if (!title || !author || !category ||
+app.post('/api/books', (req, res) => {
+
+    const { id, title, author, category, quantity } = req.body;
+    if (
+        !Number.isInteger(id) || id <= 0 ||
+        !title || !author || !category ||
         quantity === undefined ||
-        !Number.isInteger(quantity) || quantity < 0) {
+        !Number.isInteger(quantity) || quantity < 0
+    ) {
         return res.status(400).json({
-            message: "Please provide valid title, author, category and non-negative integer quantity"
+            message: "Please provide valid ID, title, author, category and quantity"
         });
     }
+    const existingBook = books.find(book => book.id === id);
 
+    if (existingBook) {
+        return res.status(400).json({
+            message: "Book ID already exists"
+        });
+    }
     const newBook = {
-        id: books.length > 0
-            ? Math.max(...books.map(book => book.id)) + 1
-            : 1,
+        id,
         title,
         author,
         category,
         quantity,
         available: quantity
-    }; 
+    };
 
     books.push(newBook);
 
@@ -64,6 +73,8 @@ app.get('/api/books', (req, res) => {
         books
     });
 });
+
+
 app.get('/api/books/:id', (req, res) => {
     const id = Number(req.params.id);
 
@@ -77,6 +88,7 @@ app.get('/api/books/:id', (req, res) => {
 
     res.json(book);
 });
+
 app.put('/api/books/:id', (req, res) => {
     const id = Number(req.params.id);
 
@@ -123,6 +135,8 @@ app.put('/api/books/:id', (req, res) => {
         book
     });
 });
+
+// 5. DELETE BOOK - DELETE
 app.delete('/api/books/:id', (req, res) => {
     const id = Number(req.params.id);
 
@@ -147,6 +161,7 @@ app.delete('/api/books/:id', (req, res) => {
         book: deletedBook[0]
     });
 });
+
 app.get('/api/books/search', (req, res) => {
     const { title, author, category } = req.query;
 
